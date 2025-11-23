@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+loguru
+httpx
+pydantic-settings
+pydantic
+aio-pika
+redis

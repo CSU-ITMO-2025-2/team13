@@ -1,0 +1,128 @@
+services:
+  bff-service:
+    build:
+      context: ./bff
+      dockerfile: Dockerfile
+    ports:
+      - "${BFF_SERVICE_PORT:-8000}:${BFF_SERVICE_PORT:-8000}"
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${BFF_SERVICE_PORT:-8000}"]
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - ARTICLE_QUEUE_NAME=${ARTICLE_QUEUE_NAME}
+      - HABR_ADAPTER_BASE_URL=${HABR_ADAPTER_BASE_URL}
+      - LLM_SERVICE_BASE_URL=${LLM_SERVICE_BASE_URL}
+      - AUTH_SERVICE_BASE_URL=${AUTH_SERVICE_BASE_URL}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    depends_on:
+      - rabbitmq
+      - redis
+    networks:
+      - app_network
+
+  auth-service:
+    build:
+      context: ./auth_service
+      dockerfile: Dockerfile
+    ports:
+      - "${AUTH_SERVICE_PORT:-5002}"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${AUTH_SERVICE_PORT:-5002}"]
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+  habr-adapter:
+    build:
+      context: ./habr_adapter
+      dockerfile: Dockerfile
+    environment:
+      - PROXY_URL=${PROXY_URL}
+    ports:
+      - "${HABR_ADAPTER_SERVICE_PORT:-5000}:${HABR_ADAPTER_SERVICE_PORT:-5000}"
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${HABR_ADAPTER_SERVICE_PORT:-5000}"]
+    networks:
+      - app_network
+
+  llm-service:
+    build:
+      context: ./llm_service
+      dockerfile: Dockerfile
+    ports:
+      - "${LLM_SERVICE_PORT:-5001}"
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${LLM_SERVICE_PORT:-5001}"]
+    environment:
+      - PROXY_URL=${PROXY_URL}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    networks:
+      - app_network
+
+  llm-consumer:
+    build:
+      context: ./llm_service
+      dockerfile: Dockerfile
+    command: ["python", "consumer.py"]
+    depends_on:
+      - rabbitmq
+      - redis
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    networks:
+      - app_network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq
+    ports:
+      - "5672"  # для подключения приложений
+      - "15672:15672" # для веб-интерфейса управления
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    networks:
+      - app_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
+volumes:
+  redis_data:
+
+networks:
+  app_network:
+    driver: bridge
