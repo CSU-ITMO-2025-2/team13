@@ -4,3 +4,5 @@ logs/
 __pycache__/
 meets/
 data/
+team13-kubeconfig.yaml
+secrets.yaml

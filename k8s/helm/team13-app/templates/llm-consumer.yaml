@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-consumer
+  template:
+    metadata:
+      labels:
+        app: llm-consumer
+    spec:
+      containers:
+        - name: llm-consumer
+          image: {{ .Values.llm.image }}
+          command: ["python", "consumer.py"]
+          env:
+            - name: RABBITMQ_HOST
+              value: {{ .Values.global.env.RABBIT_HOST | quote }}
+            - name: RABBITMQ_PORT
+              value: {{ .Values.global.env.RABBIT_PORT | quote }}
+            - name: RABBITMQ_USER
+              value: {{ .Values.global.env.RABBIT_USER | quote }}
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: rabbitmq-password
+            - name: REDIS_HOST
+              value: {{ .Values.global.env.REDIS_HOST | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.global.env.REDIS_PORT | quote }}
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: gemini-api-key
+            - name: PROXY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: proxy-url
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "512Mi" 

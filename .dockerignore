@@ -3,3 +3,4 @@
 docker-compose.yaml
 venv/
 __pycache__/
+team13-kubeconfig.yaml

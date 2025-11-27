@@ -70,6 +70,7 @@ services:
       - "${LLM_SERVICE_PORT:-5001}"
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${LLM_SERVICE_PORT:-5001}"]
     environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - PROXY_URL=${PROXY_URL}
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
@@ -89,6 +90,8 @@ services:
       - rabbitmq
       - redis
     environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PROXY_URL=${PROXY_URL}
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - RABBITMQ_HOST=${RABBITMQ_HOST}

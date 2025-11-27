@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: habr-adapter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: habr-adapter
+  template:
+    metadata:
+      labels:
+        app: habr-adapter
+    spec:
+      containers:
+        - name: habr-adapter
+          image: {{ .Values.habr.image }}
+          command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "{{ .Values.habr.port }}"]
+          ports:
+            - containerPort: {{ .Values.habr.port }}
+          env:
+            - name: PROXY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: proxy-url
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "512Mi" 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: habr-adapter
+spec:
+  ports:
+    - port: {{ .Values.habr.port }}
+  selector:
+    app: habr-adapter

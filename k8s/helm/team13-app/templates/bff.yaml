@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bff-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bff-service
+  template:
+    metadata:
+      labels:
+        app: bff-service
+    spec:
+      containers:
+        - name: bff-service
+          image: {{ .Values.bff.image }}
+          imagePullPolicy: Always
+          command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "{{ .Values.bff.port }}"]
+          ports:
+            - containerPort: {{ .Values.bff.port }}
+          env:
+            - name: AUTH_SERVICE_BASE_URL
+              value: "http://auth-service:{{ .Values.auth.port }}"
+            - name: HABR_ADAPTER_BASE_URL
+              value: "http://habr-adapter:{{ .Values.habr.port }}"
+            - name: LLM_SERVICE_BASE_URL
+              value: "http://llm-service:{{ .Values.llm.port }}"
+            - name: RABBITMQ_HOST
+              value: {{ .Values.global.env.RABBIT_HOST | quote }}
+            - name: RABBITMQ_PORT
+              value: {{ .Values.global.env.RABBIT_PORT | quote }}
+            - name: RABBITMQ_USER
+              value: {{ .Values.global.env.RABBIT_USER | quote }}
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: rabbitmq-password
+            - name: ARTICLE_QUEUE_NAME
+              value: {{ .Values.global.env.QUEUE_NAME | quote }}
+            
+            - name: REDIS_HOST
+              value: {{ .Values.global.env.REDIS_HOST | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.global.env.REDIS_PORT | quote }}
+            
+            - name: POSTGRES_HOST
+              value: {{ .Values.global.env.DB_HOST | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.global.env.DB_PORT | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.global.env.DB_NAME | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.global.env.DB_USER | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: postgres-password
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "512Mi" 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bff-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.bff.port }}
+  selector:
+    app: bff-service

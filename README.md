@@ -198,3 +198,42 @@ Response:
   }
 }
 ```
+
+## Заметки
+
+Первый успешный деплой в k8s, оно живое
+![alt text](media/image_0.png)
+![alt text](media/image_1.png)
+
+```
+(base) PS Q:\PythonProjects\team13> helm upgrade team13-app ./k8s/helm/team13-app -n team13-ns -f ./k8s/helm/team13-app/values.yaml -f secrets.yaml --kubeconfig team13-kubeconfig.yaml
+Release "team13-app" has been upgraded. Happy Helming!
+NAME: team13-app
+LAST DEPLOYED: Thu Nov 27 21:08:17 2025
+NAMESPACE: team13-ns
+STATUS: deployed
+REVISION: 5
+DESCRIPTION: Upgrade complete
+TEST SUITE: None
+(base) PS Q:\PythonProjects\team13> kubectl get ingress -n team13-ns --kubeconfig team13-kubeconfig.yaml
+NAME                 CLASS   HOSTS                     ADDRESS   PORTS     AGE
+team13-app-ingress   nginx   team-13.kubepractice.ru             80, 443   5s
+(base) PS Q:\PythonProjects\team13> kubectl get pods -n team13-ns --kubeconfig team13-kubeconfig.yaml
+NAME                            READY   STATUS    RESTARTS   AGE
+auth-service-69d5dd6ffd-w975g   1/1     Running   0          14m
+bff-service-6f9f97f89-lwh5c     1/1     Running   0          10m
+habr-adapter-67c698fd7f-ksskz   1/1     Running   0          10m
+llm-consumer-57876c547b-prctk   1/1     Running   0          14m
+llm-service-ff968cc5-hf4r7      1/1     Running   0          10m
+rabbitmq-5d58f9d868-tdjjk       1/1     Running   0          14m
+redis-6d65768944-ph5jf          1/1     Running   0          14m
+(base) PS Q:\PythonProjects\team13> kubectl top pods -n team13-ns --kubeconfig team13-kubeconfig.yaml
+NAME                            CPU(cores)   MEMORY(bytes)   
+auth-service-69d5dd6ffd-w975g   2m           89Mi
+bff-service-6dffcc5cfb-zcbbc    2m           72Mi
+habr-adapter-67c698fd7f-ksskz   2m           43Mi
+llm-consumer-57876c547b-prctk   1m           36Mi
+llm-service-ff968cc5-hf4r7      2m           45Mi
+rabbitmq-5d58f9d868-tdjjk       3m           122Mi
+redis-6d65768944-ph5jf          4m           3Mi
+```

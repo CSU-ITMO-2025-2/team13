@@ -1,0 +1,55 @@
+global:
+  env:
+    # Postgres
+    DB_HOST: "79.174.89.43"
+    DB_PORT: "18809"
+    DB_NAME: "team13_db"
+    DB_USER: "team13"
+    # RabbitMQ
+    RABBIT_USER: "user"
+    RABBIT_HOST: "rabbitmq"
+    RABBIT_PORT: "5672"
+    QUEUE_NAME: "articles_queue" # ARTICLE_QUEUE_NAME
+    # Redis
+    REDIS_HOST: "redis"
+    REDIS_PORT: "6379"
+    # Auth
+    ALGORITHM: "HS256"
+
+    DB_PASS: ""
+    RABBIT_PASS: ""
+    SECRET_KEY: ""
+    GEMINI_KEY: ""
+    PROXY_URL: ""
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "team-13.kubepractice.ru"
+  tls:
+    secretName: "team13-tls"
+
+auth:
+  image: ddreamboyy/team13-auth:v1
+  port: 5002
+
+bff:
+  image: ddreamboyy/team13-bff:v2
+  port: 8000
+
+habr:
+  image: ddreamboyy/team13-habr:v1
+  port: 5000
+
+llm:
+  image: ddreamboyy/team13-llm:v1
+  port: 5001
+
+rabbitmq:
+  image: rabbitmq:3.12-management
+  port: 5672
+  uiPort: 15672
+
+redis:
+  image: redis:7-alpine
+  port: 6379
