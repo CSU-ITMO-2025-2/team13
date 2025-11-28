@@ -30,11 +30,11 @@ ingress:
     secretName: "team13-tls"
 
 auth:
-  image: ddreamboyy/team13-auth:v1
+  image: ddreamboyy/team13-auth:v2
   port: 5002
 
 bff:
-  image: ddreamboyy/team13-bff:v2
+  image: ddreamboyy/team13-bff:v3
   port: 8000
 
 habr:

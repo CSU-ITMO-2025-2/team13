@@ -32,3 +32,11 @@ kubectl get pods -n team13-ns --kubeconfig team13-kubeconfig.yaml
 ```
 kubectl top pods -n team13-ns --kubeconfig team13-kubeconfig.yaml
 ```
+
+```
+kubectl logs -l app=bff-service -n team13-ns --kubeconfig team13-kubeconfig.yaml
+```
+
+```
+kubectl exec -it ... -n team13-ns --kubeconfig team13-kubeconfig.yaml -- /bin/sh
+```
