@@ -45,3 +45,11 @@ kubectl exec -it ... -n team13-ns --kubeconfig team13-kubeconfig.yaml -- /bin/sh
 ```
 kubectl port-forward svc/kafka-ui 8080:80 -n kafka
 ```
+
+```
+kubectl apply -f secrets.yaml -n team13-ns --kubeconfig team13-kubeconfig.yaml
+```
+
+```
+kubectl get secret team13-app-secrets -n team13-ns --kubeconfig team13-kubeconfig.yaml
+```

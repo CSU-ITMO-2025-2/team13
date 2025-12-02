@@ -6,3 +6,4 @@ meets/
 data/
 team13-kubeconfig.yaml
 secrets.yaml
+k8s-secrets.yaml
