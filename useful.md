@@ -40,3 +40,8 @@ kubectl logs -l app=bff-service -n team13-ns --kubeconfig team13-kubeconfig.yaml
 ```
 kubectl exec -it ... -n team13-ns --kubeconfig team13-kubeconfig.yaml -- /bin/sh
 ```
+
+
+```
+kubectl port-forward svc/kafka-ui 8080:80 -n kafka
+```

@@ -1,0 +1,99 @@
+name: auth-build-and-bump
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "auth_service/**"
+      - ".github/workflows/auth-build-and-bump.yaml"
+
+env:
+  CONFIG_REPO: CSU-ITMO-2025-2/team13-helm
+  VALUES_FILE: values.yaml
+  IMAGE_NAME: team13-auth
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.settag.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Derive image tag
+        id: settag
+        run: echo "image_tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Derive lowercase owner
+        id: setowner
+        run: echo "owner_lc=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./auth_service
+          file: ./auth_service/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.setowner.outputs.owner_lc }}/${{ env.IMAGE_NAME }}:${{ steps.settag.outputs.image_tag }}
+            ghcr.io/${{ steps.setowner.outputs.owner_lc }}/${{ env.IMAGE_NAME }}:latest
+
+  bump:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout Config Repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.CONFIG_REPO }}
+          path: helm-config
+          token: ${{ secrets.CONFIG_REPO_PAT }}
+
+      - name: Update image.tag in helm/values.yaml
+        id: update_tag
+        run: |
+          NEW_TAG="${{ needs.build.outputs.image_tag }}"
+          CONFIG_PATH="helm-config/${{ env.VALUES_FILE }}"
+
+          curl -sSL -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+
+          yq eval -i ".auth.image.tag = \"${NEW_TAG}\"" "$CONFIG_PATH"
+
+          if [[ $(git -C helm-config status --porcelain) ]]; then
+            echo "files_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "files_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create PR
+        if: steps.update_tag.outputs.files_changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.CONFIG_REPO_PAT }}
+          path: helm-config
+          commit-message: "chore(ci): bump auth image to ${{ needs.build.outputs.image_tag }}"
+          title: "Bump auth image to ${{ needs.build.outputs.image_tag }}"
+          body: |
+            Auto-generated PR: update `values.yaml` to auth image tag `${{ needs.build.outputs.image_tag }}`.
+
+            Merge this PR to trigger Argo CD sync in the cluster.
+          branch: ci/bump-auth-image-${{ needs.build.outputs.image_tag }}
+          base: main
+          labels: ci, automated
+          signoff: false

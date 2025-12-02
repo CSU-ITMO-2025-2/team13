@@ -22,6 +22,9 @@ global:
     GEMINI_KEY: ""
     PROXY_URL: ""
 
+imagePullSecrets:
+  - name: ghcr-secret
+
 ingress:
   enabled: true
   className: "nginx"
@@ -30,19 +33,31 @@ ingress:
     secretName: "team13-tls"
 
 auth:
-  image: ddreamboyy/team13-auth:v2
+  image:
+    repository: ghcr.io/csu-itmo-2025-2/team13-auth
+    pullPolicy: Always
+    tag: "latest"
   port: 5002
 
 bff:
-  image: ddreamboyy/team13-bff:v3
+  image:
+    repository: ghcr.io/csu-itmo-2025-2/team13-bff
+    pullPolicy: Always
+    tag: "latest"
   port: 8000
 
 habr:
-  image: ddreamboyy/team13-habr:v1
+  image:
+    repository: ghcr.io/csu-itmo-2025-2/team13-habr
+    pullPolicy: Always
+    tag: "latest"
   port: 5000
 
 llm:
-  image: ddreamboyy/team13-llm:v1
+  image:
+    repository: ghcr.io/csu-itmo-2025-2/team13-llm
+    pullPolicy: Always
+    tag: "latest"
   port: 5001
 
 rabbitmq:
