@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 import aiofiles
@@ -90,27 +91,53 @@ async def init_default_admin(session: AsyncSession, admin_data: dict):
 
 
 async def init_database(
-    session: AsyncSession = async_session_maker(),
+    session: AsyncSession = None,
     data_file_path: str = "initial_data.yaml",
     create_tables: bool = True,
+    max_retries: int = 3,
+    retry_delay: int = 5,
 ) -> None:
     """
     Инициализирует базу данных, загружая начальные данные из YAML-файла
     """
-    if create_tables:
-        logger.info("Создание таблиц базы данных")
-        if hasattr(session, "bind"):
-            engine_to_use = session.bind
-        else:
-            engine_to_use = session.get_bind()
+    from app.dao.database import engine
 
-        async with engine_to_use.begin() as conn:
-            await conn.run_sync(AuthBase.metadata.create_all)
-
-        logger.info("Таблицы базы данных созданы")
+    # Retry-логика для подключения к БД
+    for attempt in range(1, max_retries + 1):
+        try:
+            if create_tables:
+                logger.info(
+                    f"Создание таблиц базы данных (попытка {attempt}/{max_retries})"
+                )
+                async with engine.begin() as conn:
+                    await conn.run_sync(AuthBase.metadata.create_all)
+                logger.info("Таблицы базы данных созданы")
+            break  # Успешное подключение, выходим из цикла
+        except Exception as e:
+            logger.warning(
+                f"Попытка подключения к БД {attempt}/{max_retries} не удалась: {e}"
+            )
+            if attempt < max_retries:
+                logger.info(f"Повторная попытка через {retry_delay} секунд...")
+                await asyncio.sleep(retry_delay)
+            else:
+                logger.error(
+                    "Не удалось подключиться к базе данных после всех попыток. "
+                    "Сервис продолжит работу без инициализации БД."
+                )
+                return  # Выходим без ошибки, сервис продолжит работу
 
     logger.info(f"Загрузка начальных данных из файла: {data_file_path}")
-    data = await load_initial_data(Path(data_file_path))
+    try:
+        data = await load_initial_data(Path(data_file_path))
+    except FileNotFoundError:
+        logger.warning(
+            f"Файл начальных данных не найден: {data_file_path}, пропуск инициализации данных"
+        )
+        return
+
+    if session is None:
+        session = async_session_maker()
 
     if isinstance(session, AsyncSession):
         try:
