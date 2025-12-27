@@ -237,3 +237,23 @@ llm-service-ff968cc5-hf4r7      2m           45Mi
 rabbitmq-5d58f9d868-tdjjk       3m           122Mi
 redis-6d65768944-ph5jf          4m           3Mi
 ```
+
+##  Chaos Engineering: CPU & Memory Stress Test
+### Цель:
+Проверить корректность работы механизма горизонтального autoscaling, управляемого KEDA, при резком росте нагрузки на микросервис habr-adapter по CPU и памяти.
+
+![img](media/img1.jpg)
+![img](media/img2.jpg)
+![img](media/img3.jpg)
+![img](media/img4.jpg)
+
+### Результаты:
+* В ответ на стресс-нагрузку KEDA успешно инициировала масштабирование: количество реплик выросло с 1 до 3.
+
+* После завершения эксперимента (снижения нагрузки ниже пороговых значений) KEDA автоматически уменьшила количество реплик до 2 с логом:
+
+```
+SuccessfulRescale: New size: 2; reason: All metrics below target.
+```
+
+* Система осталась функционально доступной на протяжении всего эксперимента.
