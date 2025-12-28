@@ -43,6 +43,11 @@ async def process_article(
                 )
 
             task = await send_article_to_queue(article)
+
+            await redis_client.set(
+                task.task_id, json.dumps({"status": "queued"}), ex=3600
+            )
+
             article_db = Article(url=url_str, task_id=task.task_id)
             session.add(article_db)
             await session.flush()
@@ -69,6 +74,10 @@ async def process_article(
                 )
 
             task = await send_article_to_queue(article)
+
+            await redis_client.set(
+                task.task_id, json.dumps({"status": "queued"}), ex=3600
+            )
 
             article_db.task_id = task.task_id
             article_db.parsed_content = None
