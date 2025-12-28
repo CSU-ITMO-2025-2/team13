@@ -5,7 +5,7 @@ from config import settings
 
 
 class GeminiService:
-    REQUEST_LIMIT = settings.REQUESTS_PER_MINUTE
+    REQUEST_LIMIT = settings.LLM_RATE_LIMIT
     REQUEST_PERIOD = 60
 
     def __init__(

@@ -6,3 +6,4 @@ pydantic-settings
 pydantic
 aio-pika
 redis
+langchain-openai

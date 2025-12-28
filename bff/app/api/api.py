@@ -29,6 +29,7 @@ async def process_article(
     try:
         user_uuid = UUID(current_user.id)
         url_str = str(body.url)
+        force_generation = body.force_generation
 
         stmt = select(Article).where(Article.url == url_str)
         result = await session.execute(stmt)
@@ -59,6 +60,21 @@ async def process_article(
             await session.commit()
 
         cached_result = await redis_client.get(f"article:{url_str}")
+
+        if force_generation:
+            article = await get_article_from_habr(url_str)
+            if not article or not article.text:
+                raise HTTPException(
+                    status_code=400, detail="Не удалось получить текст статьи"
+                )
+
+            task = await send_article_to_queue(article)
+
+            article_db.task_id = task.task_id
+            article_db.parsed_content = None
+            await session.commit()
+            return {"task_id": article_db.task_id, "status": "queued"}
+
         if cached_result:
             return {
                 "task_id": article_db.task_id,
@@ -108,7 +124,7 @@ async def get_article_result(
     async with HTTPXClient() as client:
         resp = await client.request(
             "GET",
-            f"{settings.LLM_SERVICE_BASE_URL}/api/gemini/tasks/{task_id}",
+            f"{settings.LLM_SERVICE_BASE_URL}/api/llm/tasks/{task_id}",
         )
 
         if resp.status_code == 404:

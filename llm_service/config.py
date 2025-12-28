@@ -15,17 +15,25 @@ class ELogLevel(str):
 class Settings(BaseSettings):
     """
     Класс для хранения и валидации настроек приложения
-    Загружает переменные из .env файла
     """
 
-    # LLM
-    GEMINI_API_KEY: str
+    # LLM Common
+    LLM_PROVIDER: str = "openai"
+    LLM_RATE_LIMIT: int = 1  # 1 запрос в минуту
+    LLM_HOURLY_LIMIT: int = 120  # 120 запросов в час
+
+    # Google Gemini
+    GEMINI_API_KEY: str | None = None
     GEMINI_API_BASE_URL: str = (
         "https://generativelanguage.googleapis.com/v1beta/models"
     )
-    PROXY_URL: str | None = None
 
-    REQUESTS_PER_MINUTE: int = 10
+    # OpenAI-like
+    LLM_BASE_URL: str = "https://routerai.ru/api/v1"
+    LLM_API_KEY: str | None = None
+    LLM_MODEL_NAME: str = "deepseek/deepseek-v3.2-exp"
+
+    PROXY_URL: str | None = None
 
     DEV_MODE: bool = True
 
@@ -44,6 +52,10 @@ class Settings(BaseSettings):
     @property
     def RABBITMQ_URL(self) -> str:
         return f"amqp://{self.RABBITMQ_USER}:{self.RABBITMQ_PASSWORD}@{self.RABBITMQ_HOST}:{self.RABBITMQ_PORT}/"
+
+    @property
+    def REDIS_URL(self) -> str:
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
 
     @property
     def CONSOLE_LOG_LEVEL(self):

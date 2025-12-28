@@ -6,6 +6,10 @@ class SArticleParseRequest(BaseModel):
         "https://habr.com/ru/companies/selectel/articles/967092",
         description="URL статьи на Habr",
     )
+    force_generation: bool = Field(
+        False,
+        description="Флаг для принудительной генерации, игнорирует кэш и существующие записи",
+    )
 
 
 class SArticleParsed(BaseModel):
