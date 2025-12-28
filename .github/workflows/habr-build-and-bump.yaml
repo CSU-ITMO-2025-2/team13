@@ -62,7 +62,7 @@ jobs:
         with:
           repository: ${{ env.CONFIG_REPO }}
           path: helm-config
-          token: ${{ secrets.CONFIG_REPO_PAT }}
+          token: ${{ secrets.CONFIG_TEAM_13_REPO_PAT }}
 
       - name: Update image.tag in helm/values.yaml
         id: update_tag
@@ -85,7 +85,7 @@ jobs:
         if: steps.update_tag.outputs.files_changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.CONFIG_REPO_PAT }}
+          token: ${{ secrets.CONFIG_TEAM_13_REPO_PAT }}
           path: helm-config
           commit-message: "chore(ci): bump habr image to ${{ needs.build.outputs.image_tag }}"
           title: "Bump habr image to ${{ needs.build.outputs.image_tag }}"

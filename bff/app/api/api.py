@@ -26,6 +26,10 @@ async def process_article(
     session: AsyncSession = Depends(get_async_session),
     redis_client=Depends(get_redis_client),
 ):
+    """
+    Обработать статью, вернуть task_id и статус, если уже есть результат - вернуть его
+    """
+
     try:
         user_uuid = UUID(current_user.id)
         url_str = str(body.url)
