@@ -1,6 +1,5 @@
 from app.sgr.habr import SHabrArticleSummary
 from config import settings
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from loguru import logger
 
@@ -29,11 +28,7 @@ class OpenAIService:
                 ("user", prompt),
             ]
 
-            chat_template = ChatPromptTemplate.from_messages(messages)
-
-            chain = chat_template | structured_llm
-
-            result = await chain.ainvoke({})
+            result = await structured_llm.ainvoke(messages)
 
             if isinstance(result, dict):
                 return SHabrArticleSummary.model_validate(result)

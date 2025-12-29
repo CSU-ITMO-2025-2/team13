@@ -53,3 +53,7 @@ kubectl apply -f k8s-secrets.yaml -n team13-ns --kubeconfig team13-kubeconfig.ya
 ```
 kubectl get secret team13-secrets -n team13-ns --kubeconfig team13-kubeconfig.yaml
 ```
+
+```
+kubectl port-forward svc/rabbitmq 15672:15672 -n team13-ns --kubeconfig team13-kubeconfig.yaml
+```
