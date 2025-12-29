@@ -2,6 +2,19 @@
 
 Микросервисная архитектура для парсинга статей с Habr и их обработки с помощью LLM
 
+## Team
+
+<p>
+  <a href="https://github.com/ctpemho7">Семен Лукин</a> ·
+  <a href="https://github.com/sssay10">Кирилл Дувакин</a> ·
+  <a href="https://github.com/EugenePWN">Евгений Капустин</a> ·
+  <a href="https://github.com/ddreamboy">Аркадий Сенин</a> ·
+  <a href="https://github.com/SerSemyon">Семен Серов</a>
+</p>
+
+
+
+
 ## Основные возможности
 
 - **BFF Service** - Backend for Frontend, точка входа для клиентов

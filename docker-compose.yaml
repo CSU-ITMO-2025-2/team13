@@ -6,22 +6,8 @@ services:
     ports:
       - "${BFF_SERVICE_PORT:-8000}:${BFF_SERVICE_PORT:-8000}"
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${BFF_SERVICE_PORT:-8000}"]
-    environment:
-      - RABBITMQ_USER=${RABBITMQ_USER}
-      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-      - RABBITMQ_HOST=${RABBITMQ_HOST}
-      - RABBITMQ_PORT=${RABBITMQ_PORT}
-      - ARTICLE_QUEUE_NAME=${ARTICLE_QUEUE_NAME}
-      - HABR_ADAPTER_BASE_URL=${HABR_ADAPTER_BASE_URL}
-      - LLM_SERVICE_BASE_URL=${LLM_SERVICE_BASE_URL}
-      - AUTH_SERVICE_BASE_URL=${AUTH_SERVICE_BASE_URL}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
+    env_file:
+      - .env
     depends_on:
       - rabbitmq
       - redis
